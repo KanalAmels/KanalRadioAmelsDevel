@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const projectRoot = new URL("./", menuScript.src);
 
     // Zentrales Menü aus dem eigenen Projekt laden
+
     const menuURL = new URL("menu.html", projectRoot);
     const response = await fetch(menuURL);
 
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
 
       // Bisherige Daily-Links in projektrelative Links umwandeln
+
       const relativePath = originalPath.replace(
         /^\/KanalRadioAmelsDaily\//,
         ""
@@ -87,6 +89,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const currentPath = normalizePath(window.location.pathname);
 
+    let activeDecade = null;
+
     menuDropdown.querySelectorAll("a").forEach(function (link) {
 
       const linkPath = normalizePath(link.pathname);
@@ -100,7 +104,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         const parentDecade = link.closest(".menu-decade");
 
         if (parentDecade) {
+
           parentDecade.classList.add("menu-active-decade");
+
+          // Aktuelles Jahrzehnt für automatisches Öffnen merken
+
+          activeDecade = parentDecade;
+
         }
 
       }
@@ -150,20 +160,32 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         decades.forEach(function (other) {
+
           if (other !== decade) {
             other.open = false;
           }
+
         });
 
       });
 
     });
 
+    // Aktuelles Jahrzehnt automatisch aufklappen
+    // Dadurch wird beim Öffnen des Menüs auch der
+    // aktive Radio-Mix oder Dance-Mix sofort sichtbar
+
+    if (activeDecade) {
+      activeDecade.open = true;
+    }
+
     // Menü öffnen und schließen
 
     function closeMenu() {
+
       menuDropdown.classList.remove("open");
       menuButton.setAttribute("aria-expanded", "false");
+
     }
 
     menuButton.addEventListener("click", function () {
@@ -192,8 +214,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         event.key === "Escape" &&
         menuDropdown.classList.contains("open")
       ) {
+
         closeMenu();
         menuButton.focus();
+
       }
 
     });
