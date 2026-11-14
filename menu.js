@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const menuDropdown = document.getElementById("menu-dropdown");
 
     // Alle internen Menülinks auf das eigene Projekt beziehen
+
     menuDropdown.querySelectorAll("a").forEach(function (link) {
 
       const originalPath = link.getAttribute("href");
@@ -71,22 +72,73 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     });
 
+    // Einheitliche Pfadprüfung
+    // Erkennt sowohl Ordner-URLs als auch index.html
+
+    function normalizePath(path) {
+
+      return path
+        .replace(/index\.html$/, "")
+        .replace(/\/+$/, "") + "/";
+
+    }
+
     // Aktuellen Sender automatisch markieren
-    const currentPath = window.location.pathname;
+
+    const currentPath = normalizePath(window.location.pathname);
 
     menuDropdown.querySelectorAll("a").forEach(function (link) {
 
-      if (
-        link.pathname === currentPath ||
-        link.pathname.replace(/index\.html$/, "") ===
-        currentPath.replace(/index\.html$/, "")
-      ) {
+      const linkPath = normalizePath(link.pathname);
+
+      if (linkPath === currentPath) {
+
         link.setAttribute("aria-current", "page");
+
+        // Zugehöriges Jahrzehnt ebenfalls markieren
+
+        const parentDecade = link.closest(".menu-decade");
+
+        if (parentDecade) {
+          parentDecade.classList.add("menu-active-decade");
+        }
+
       }
 
     });
 
+    // Formatierung für den aktiven Sender
+    // und das zugehörige Jahrzehnt dauerhaft sicherstellen
+
+    if (!document.getElementById("kanalradio-menu-active-style")) {
+
+      const activeStyle = document.createElement("style");
+
+      activeStyle.id = "kanalradio-menu-active-style";
+
+      activeStyle.textContent = `
+        #menu-dropdown a[aria-current="page"] {
+          font-weight: bold !important;
+          color: #facc15 !important;
+        }
+
+        #menu-dropdown .menu-active-decade > summary {
+          font-weight: bold !important;
+          color: #facc15 !important;
+        }
+
+        #menu-dropdown .menu-decade[open] > summary {
+          font-weight: bold !important;
+          color: #facc15 !important;
+        }
+      `;
+
+      document.head.appendChild(activeStyle);
+
+    }
+
     // Immer nur ein Jahrzehnt gleichzeitig aufklappen
+
     const decades = menuDropdown.querySelectorAll(".menu-decade");
 
     decades.forEach(function (decade) {
@@ -108,6 +160,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     // Menü öffnen und schließen
+
     function closeMenu() {
       menuDropdown.classList.remove("open");
       menuButton.setAttribute("aria-expanded", "false");
@@ -116,11 +169,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     menuButton.addEventListener("click", function () {
 
       const isOpen = menuDropdown.classList.toggle("open");
+
       menuButton.setAttribute("aria-expanded", String(isOpen));
 
     });
 
     // Schließen beim Klick außerhalb
+
     document.addEventListener("click", function (event) {
 
       if (!menuContainer.contains(event.target)) {
@@ -130,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     // Schließen mit Escape
+
     document.addEventListener("keydown", function (event) {
 
       if (
