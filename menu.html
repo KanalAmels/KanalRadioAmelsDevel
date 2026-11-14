@@ -1,208 +1,168 @@
 
-/* Kanal-Radio Amels – Zentrale Menüsteuerung */
+<!-- Kanal-Radio Amels – Zentrales Sendermenü -->
 
-document.addEventListener("DOMContentLoaded", async function () {
-
-  const menuContainer = document.getElementById("menu-container");
-
-  if (!menuContainer) {
-    return;
+<style>
+  /* Aufgeklapptes Jahrzehnt fett hervorheben */
+  #menu-dropdown .menu-decade[open] > summary {
+    font-weight: bold;
   }
-
-  try {
-
-    // Projekt-Stammverzeichnis automatisch ermitteln
-    // Funktioniert in Daily, Devel und auf anderen Servern
-
-    const menuScript = Array.from(document.scripts).find(function (script) {
-      return script.src &&
-        new URL(script.src).pathname.endsWith("/menu.js");
-    });
-
-    if (!menuScript) {
-      throw new Error("Pfad zur menu.js konnte nicht ermittelt werden");
-    }
-
-    const projectRoot = new URL("./", menuScript.src);
-
-    // Zentrales Menü aus dem eigenen Projekt laden
-    const menuURL = new URL("menu.html", projectRoot);
-    const response = await fetch(menuURL);
-
-    if (!response.ok) {
-      throw new Error("Menü konnte nicht geladen werden");
-    }
-
-    const menuHTML = await response.text();
-
-    menuContainer.innerHTML = `
-      <button
-        class="menu"
-        id="menu-button"
-        type="button"
-        aria-expanded="false"
-        aria-controls="menu-dropdown">
-        Menü ☰
-      </button>
-      ${menuHTML}
-    `;
-
-    const menuButton = document.getElementById("menu-button");
-    const menuDropdown = document.getElementById("menu-dropdown");
-
-    // Alle internen Menülinks auf das eigene Projekt beziehen
-
-    menuDropdown.querySelectorAll("a").forEach(function (link) {
-
-      const originalPath = link.getAttribute("href");
-
-      if (!originalPath) {
-        return;
-      }
-
-      // Bisherige Daily-Links in projektrelative Links umwandeln
-      const relativePath = originalPath.replace(
-        /^\/KanalRadioAmelsDaily\//,
-        ""
-      );
-
-      if (relativePath !== originalPath) {
-        link.href = new URL(relativePath, projectRoot).href;
-      }
-
-    });
-
-    // Einheitliche Pfadprüfung
-    // Erkennt sowohl Ordner-URLs als auch index.html
-
-    function normalizePath(path) {
-
-      return path
-        .replace(/index\.html$/, "")
-        .replace(/\/+$/, "") + "/";
-
-    }
-
-    // Aktuellen Sender automatisch markieren
-
-    const currentPath = normalizePath(window.location.pathname);
-
-    menuDropdown.querySelectorAll("a").forEach(function (link) {
-
-      const linkPath = normalizePath(link.pathname);
-
-      if (linkPath === currentPath) {
-
-        link.setAttribute("aria-current", "page");
-
-        // Zugehöriges Jahrzehnt ebenfalls markieren
-
-        const parentDecade = link.closest(".menu-decade");
-
-        if (parentDecade) {
-          parentDecade.classList.add("menu-active-decade");
-        }
-
-      }
-
-    });
-
-    // Formatierung für den aktiven Sender
-    // und das zugehörige Jahrzehnt dauerhaft sicherstellen
-
-    if (!document.getElementById("kanalradio-menu-active-style")) {
-
-      const activeStyle = document.createElement("style");
-
-      activeStyle.id = "kanalradio-menu-active-style";
-
-      activeStyle.textContent = `
-        #menu-dropdown a[aria-current="page"] {
-          font-weight: bold !important;
-          color: #facc15 !important;
-        }
-
-        #menu-dropdown .menu-active-decade > summary {
-          font-weight: bold !important;
-          color: #facc15 !important;
-        }
-
-        #menu-dropdown .menu-decade[open] > summary {
-          font-weight: bold !important;
-          color: #facc15 !important;
-        }
-      `;
-
-      document.head.appendChild(activeStyle);
-
-    }
-
-    // Immer nur ein Jahrzehnt gleichzeitig aufklappen
-
-    const decades = menuDropdown.querySelectorAll(".menu-decade");
-
-    decades.forEach(function (decade) {
-
-      decade.addEventListener("toggle", function () {
-
-        if (!decade.open) {
-          return;
-        }
-
-        decades.forEach(function (other) {
-          if (other !== decade) {
-            other.open = false;
-          }
-        });
-
-      });
-
-    });
-
-    // Menü öffnen und schließen
-
-    function closeMenu() {
-      menuDropdown.classList.remove("open");
-      menuButton.setAttribute("aria-expanded", "false");
-    }
-
-    menuButton.addEventListener("click", function () {
-
-      const isOpen = menuDropdown.classList.toggle("open");
-
-      menuButton.setAttribute("aria-expanded", String(isOpen));
-
-    });
-
-    // Schließen beim Klick außerhalb
-
-    document.addEventListener("click", function (event) {
-
-      if (!menuContainer.contains(event.target)) {
-        closeMenu();
-      }
-
-    });
-
-    // Schließen mit Escape
-
-    document.addEventListener("keydown", function (event) {
-
-      if (
-        event.key === "Escape" &&
-        menuDropdown.classList.contains("open")
-      ) {
-        closeMenu();
-        menuButton.focus();
-      }
-
-    });
-
-  } catch (error) {
-
-    console.error("Kanal-Radio Menüfehler:", error);
-    menuContainer.textContent = "Menü nicht verfügbar";
-
-  }
-
-});
+</style>
+
+<nav class="menu-dropdown"
+     id="menu-dropdown"
+     aria-label="Senderauswahl"
+     style="color: #facc15;">
+
+  <!-- DAILY NEW SONGS -->
+
+  <a href="/KanalRadioAmelsDaily/daily/"
+     style="color: #facc15;">
+    <span style="color: #facc15; font-size: 24px;">♫</span>
+    <span>Daily New Songs</span>
+  </a>
+
+  <!-- 1990 - 1999 -->
+
+  <details class="menu-decade">
+    <summary style="color: #facc15;">
+      <span style="color: #facc15; font-size: 24px;">♫</span>
+      <span>1990 - 1999</span>
+      <span class="menu-arrow" aria-hidden="true"></span>
+    </summary>
+
+    <div class="menu-submenu">
+
+      <a href="/KanalRadioAmelsDaily/1990th_radio/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <rect x="3" y="7" width="18" height="13" rx="2"/>
+          <path d="M5 7L17 3"/>
+          <circle cx="9" cy="14" r="3"/>
+          <path d="M15 12h3M15 16h3"/>
+        </svg>
+        <span>Radio-Mix</span>
+      </a>
+
+      <a href="/KanalRadioAmelsDaily/1990th_dance/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M12 6 L10 13 L15 16"/>
+          <path d="M11 8 L5 5 L3 2"/>
+          <path d="M11 9 L17 7 L21 10"/>
+          <path d="M10 13 L5 20"/>
+          <path d="M15 16 L20 21"/>
+        </svg>
+        <span>Dance-Mix</span>
+      </a>
+
+    </div>
+  </details>
+
+  <!-- 2000 - 2009 -->
+
+  <details class="menu-decade">
+    <summary style="color: #facc15;">
+      <span style="color: #facc15; font-size: 24px;">♫</span>
+      <span>2000 - 2009</span>
+      <span class="menu-arrow" aria-hidden="true"></span>
+    </summary>
+
+    <div class="menu-submenu">
+
+      <a href="/KanalRadioAmelsDaily/2000th_radio/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <rect x="3" y="7" width="18" height="13" rx="2"/>
+          <path d="M5 7L17 3"/>
+          <circle cx="9" cy="14" r="3"/>
+          <path d="M15 12h3M15 16h3"/>
+        </svg>
+        <span>Radio-Mix</span>
+      </a>
+
+      <a href="/KanalRadioAmelsDaily/2000th_dance/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M12 6 L10 13 L15 16"/>
+          <path d="M11 8 L5 5 L3 2"/>
+          <path d="M11 9 L17 7 L21 10"/>
+          <path d="M10 13 L5 20"/>
+          <path d="M15 16 L20 21"/>
+        </svg>
+        <span>Dance-Mix</span>
+      </a>
+
+    </div>
+  </details>
+
+  <!-- 2010 - 2019 -->
+
+  <details class="menu-decade">
+    <summary style="color: #facc15;">
+      <span style="color: #facc15; font-size: 24px;">♫</span>
+      <span>2010 - 2019</span>
+      <span class="menu-arrow" aria-hidden="true"></span>
+    </summary>
+
+    <div class="menu-submenu">
+
+      <a href="/KanalRadioAmelsDaily/2010th_radio/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <rect x="3" y="7" width="18" height="13" rx="2"/>
+          <path d="M5 7L17 3"/>
+          <circle cx="9" cy="14" r="3"/>
+          <path d="M15 12h3M15 16h3"/>
+        </svg>
+        <span>Radio-Mix</span>
+      </a>
+
+      <a href="/KanalRadioAmelsDaily/2010th_dance/"
+         style="color: #facc15;">
+        <svg width="22" height="22"
+             viewBox="0 0 24 24" fill="none"
+             stroke="#facc15" stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M12 6 L10 13 L15 16"/>
+          <path d="M11 8 L5 5 L3 2"/>
+          <path d="M11 9 L17 7 L21 10"/>
+          <path d="M10 13 L5 20"/>
+          <path d="M15 16 L20 21"/>
+        </svg>
+        <span>Dance-Mix</span>
+      </a>
+
+    </div>
+  </details>
+
+</nav>
